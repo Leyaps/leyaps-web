@@ -112,19 +112,21 @@ function initHeader() {
    Auth con Cognito (PKCE)
    ======================= */
 
-// ⚠️ Revisa/ajusta estos valores con lo que ves en la consola de Cognito
+// Config según tu consola de Cognito
 const COGNITO = {
   region: 'sa-east-1',
-  userPoolId: 'sa-east-1_Cb7yCQ0Oi',          // opcional, sólo referencia
-  clientId: 'ea755st9nj7b158fcsecrhflg',    // <-- CAMBIA ESTO
-  domain: 'sa-east-1cb7ycqcooi'              // prefijo del Hosted UI, sin https
+  userPoolId: 'sa-east-1_Cb7yCQ0Oi',
+  clientId: 'ea755st9nj7b158fcsecrhflg',
+  // 👇 aquí estaba el error: corregido a "cqooi"
+  domain: 'sa-east-1cb7ycqooi'
 };
 
 const baseHost = () =>
   `https://${COGNITO.domain}.auth.${COGNITO.region}.amazoncognito.com`;
 
-const redirectUri = () => `${location.origin}/`;
-const logoutRedirectUri = () => `${location.origin}/`;
+// Fijamos explícitamente el origin a Netlify (coincide con Cognito)
+const redirectUri = () => 'https://leyaps.netlify.app/';
+const logoutRedirectUri = () => 'https://leyaps.netlify.app/';
 
 // ===== Utilidades segura PKCE / URL =====
 const b64url = (buf) =>
