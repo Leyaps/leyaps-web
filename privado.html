@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="contrast">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zona privada — Leyaps</title>
+  <link rel="stylesheet" href="styles/styles.css" />
+</head>
+<body>
+  <!-- Header inyectado -->
+  <header id="app-header"></header>
+
+  <main class="layout">
+    <section class="hero">
+      <h1>Zona privada</h1>
+      <p>
+        Estás autenticado en Leyaps. Aquí podrás ver en el futuro
+        tu panel personal, documentos guardados, historial de consultas
+        y configuración de tu cuenta.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Tu sesión</h2>
+      <p>
+        Has iniciado sesión como <strong id="private-username">usuario</strong>.
+      </p>
+      <p>
+        Esta página sólo es accesible para usuarios que hayan iniciado sesión
+        mediante Amazon Cognito.
+      </p>
+    </section>
+  </main>
+
+  <!-- Footer inyectado -->
+  <footer id="app-footer"></footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
