@@ -1,40 +1,49 @@
 <!DOCTYPE html>
 <html lang="es" data-theme="contrast">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Zona privada — Leyaps</title>
-  <link rel="stylesheet" href="styles/styles.css" />
-</head>
-<body>
-  <!-- Header inyectado -->
-  <header id="app-header"></header>
 
-  <main class="layout">
-    <section class="hero">
-      <h1>Zona privada</h1>
-      <p>
-        Estás autenticado en Leyaps. Aquí podrás ver en el futuro
-        tu panel personal, documentos guardados, historial de consultas
-        y configuración de tu cuenta.
+  <!-- Mismo CSS que index.html -->
+  <link rel="stylesheet" href="styles/main.css"/>
+</head>
+
+<body data-page="privado">
+  <!-- Accesibilidad -->
+  <a class="sr-only" href="#contenido">Saltar al contenido</a>
+
+  <!-- Header dinámico -->
+  <div id="app-header"></div>
+
+  <!-- Contenido -->
+  <main id="contenido" class="container">
+
+    <section class="hero hero--center">
+      <h1 class="hero__title">Zona privada</h1>
+      <p class="hero__subtitle">
+        Bienvenido a tu área personal. Próximamente podrás ver tu panel,
+        historial de consultas, documentos guardados y configuración de tu cuenta.
       </p>
     </section>
 
-    <section class="card">
+    <section class="card mt-32">
       <h2>Tu sesión</h2>
       <p>
-        Has iniciado sesión como <strong id="private-username">usuario</strong>.
+        Has iniciado sesión como
+        <strong id="private-username">usuario</strong>.
       </p>
-      <p>
-        Esta página sólo es accesible para usuarios que hayan iniciado sesión
-        mediante Amazon Cognito.
+      <p class="mt-16">
+        Esta página sólo es accesible para usuarios autenticados mediante Amazon Cognito.
       </p>
     </section>
+
   </main>
 
-  <!-- Footer inyectado -->
-  <footer id="app-footer"></footer>
+  <!-- Footer dinámico -->
+  <div id="app-footer"></div>
 
-  <script src="js/main.js"></script>
+  <!-- Script principal -->
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
