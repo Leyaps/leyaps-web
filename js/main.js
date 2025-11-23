@@ -117,7 +117,7 @@ const COGNITO = {
   region: 'sa-east-1',
   userPoolId: 'sa-east-1_Cb7yCQ0Oi',
   clientId: 'ea755st9nj7b158fcsecrhflg',
-  // 👇 aquí estaba el error: corregido a "cqooi"
+  // Dominio correcto según Cognito
   domain: 'sa-east-1cb7ycqooi'
 };
 
@@ -303,6 +303,33 @@ function logout() {
 }
 
 /* =======================
+   Rutas protegidas
+   ======================= */
+
+const PROTECTED_PATHS = ['/privado.html'];
+
+function isProtectedRoute() {
+  return PROTECTED_PATHS.includes(location.pathname);
+}
+
+function enforceAuthGuard() {
+  if (isProtectedRoute() && !isLoggedIn()) {
+    // Si no está logueado, lo mandamos a la home por ahora
+    location.href = '/';
+  }
+}
+
+// Rellenar datos adicionales en la zona privada
+function hydratePrivatePage() {
+  if (!isProtectedRoute() || !isLoggedIn()) return;
+  const p = parseJwt(getIdToken()) || {};
+  const el = document.getElementById('private-username');
+  if (el) {
+    el.textContent = p.email ? p.email.split('@')[0] : 'usuario';
+  }
+}
+
+/* =======================
    Boot: plantillas + búsqueda + auth
    ======================= */
 async function boot() {
@@ -314,7 +341,7 @@ async function boot() {
   const go = document.getElementById('doSearch');
 
   go?.addEventListener('click', () => {
-    if (!q.value.trim()) return q.focus();
+    if (!q?.value?.trim()) return q?.focus();
     location.href = 'buscar.html?q=' + encodeURIComponent(q.value.trim());
   });
 
@@ -335,6 +362,12 @@ async function boot() {
 
   // 2) Luego actualizamos la UI según si hay sesión o no
   updateAuthUI();
+
+  // 3) Enforzamos rutas protegidas
+  enforceAuthGuard();
+
+  // 4) Hidratamos contenido privado (si aplica)
+  hydratePrivatePage();
 }
 
 boot();
