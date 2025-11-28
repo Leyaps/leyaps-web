@@ -306,7 +306,7 @@ function logout() {
    Rutas protegidas
    ======================= */
 
-const PROTECTED_PATHS = ['/privado.html'];
+const PROTECTED_PATHS = ['/privado.html', '/consulta.html'];
 
 function isProtectedRoute() {
   return PROTECTED_PATHS.includes(location.pathname);
@@ -314,7 +314,6 @@ function isProtectedRoute() {
 
 function enforceAuthGuard() {
   if (isProtectedRoute() && !isLoggedIn()) {
-    // Si no está logueado, lo mandamos a la home por ahora
     location.href = '/';
   }
 }
@@ -395,7 +394,6 @@ function fillProfileForm(tokenPayload, stored) {
     responseSelect.value = stored.responseStyle || '';
   }
 
-  // Temas prioritarios (checkboxes)
   const topics = stored.topics || [];
   const topicInputs = document.querySelectorAll('input[name="profile-topics"]');
   topicInputs.forEach((input) => {
@@ -414,23 +412,19 @@ function getProfileFormData(tokenPayload) {
   const existing = loadProfileFromStorage();
 
   return {
-    // Identidad / contacto
     name: get('profile-name')?.value?.trim() || '',
     lastname: get('profile-lastname')?.value?.trim() || '',
     phone: get('profile-phone')?.value?.trim() || '',
     country: get('profile-country')?.value?.trim() || '',
     region: get('profile-region')?.value?.trim() || '',
     language: get('profile-language')?.value || '',
-    // Laboral
     userType: get('profile-user-type')?.value || '',
     role: get('profile-role')?.value?.trim() || '',
     industry: get('profile-industry')?.value?.trim() || '',
     companySize: get('profile-company-size')?.value || '',
-    // Preferencias
     depth: get('profile-depth')?.value || '',
     responseStyle: get('profile-response-style')?.value || '',
     topics,
-    // Datos técnicos (se conservan si ya existían)
     createdAt: existing.createdAt || new Date().toISOString(),
     userId: tokenPayload.sub || existing.userId || '',
     email: tokenPayload.email || existing.email || '',
@@ -440,12 +434,11 @@ function getProfileFormData(tokenPayload) {
 
 // Rellenar zona privada con datos del token + perfil
 function hydratePrivatePage() {
-  if (!isProtectedRoute() || !isLoggedIn()) return;
+  if (location.pathname !== '/privado.html' || !isLoggedIn()) return;
 
   const token = getIdToken();
   const payload = parseJwt(token) || {};
 
-  // Cabecera de sesión
   const usernameEl = document.getElementById('private-username');
   if (usernameEl) {
     usernameEl.textContent = payload.email
@@ -468,7 +461,6 @@ function hydratePrivatePage() {
     methodEl.textContent = 'Cognito (email y contraseña)';
   }
 
-  // Perfil guardado en localStorage
   let stored = loadProfileFromStorage();
 
   if (!stored.createdAt) {
@@ -489,10 +481,8 @@ function hydratePrivatePage() {
     }
   }
 
-  // Rellenamos el formulario
   fillProfileForm(payload, stored);
 
-  // Listener de guardado (evitamos duplicar)
   const form = document.getElementById('profile-form');
   if (form && !form.dataset.bound) {
     form.addEventListener('submit', (e) => {
@@ -503,6 +493,105 @@ function hydratePrivatePage() {
     });
     form.dataset.bound = 'true';
   }
+}
+
+/* =======================
+   Página de consultas (demo IA)
+   ======================= */
+
+function isConsultPage() {
+  return location.pathname === '/consulta.html';
+}
+
+async function fakeLeyapsAnswer(payload) {
+  // Simulador simple de respuesta IA para el MVP
+  const { topic, question, depth, channel } = payload;
+
+  const baseIntro = `Esta es una respuesta simulada de Leyaps IA en base a tu consulta laboral.`;
+  const topicLine = topic
+    ? `\n\n• Tema principal detectado: ${topic}.`
+    : '';
+  const depthLine = depth
+    ? `\n• Nivel de detalle solicitado: ${depth}.`
+    : '';
+  const channelLine = channel
+    ? `\n• Objetivo declarado: ${channel}.`
+    : '';
+
+  const pasos = `
+\n\nPasos recomendados (demo):
+1. Reúne todos los documentos relacionados (contrato, anexos, liquidaciones, comunicaciones por escrito).
+2. Anota fechas claves (inicio de contrato, avisos, fecha de término, licencias, etc.).
+3. Compara tu caso con los artículos relevantes del Código del Trabajo y dictámenes de la DT (en la versión completa, Leyaps te mostrará estas referencias).
+4. Si hay diferencias importantes entre lo que te ofrecen y lo que indica la normativa, considera negociar por escrito.
+5. Si la situación es grave o hay vulneración de derechos fundamentales, evalúa asesoría legal con un abogado laboral.
+
+En la versión conectada a la IA, aquí verás:
+- Un resumen en simple de tu situación.
+- Referencias a artículos y dictámenes aplicables.
+- Riesgos y próximos pasos sugeridos según tu perfil (trabajador, empresa o abogado).`;
+
+  const cierre = `\n\n⚠️ Importante: Esta es sólo una simulación de la experiencia. No es asesoría legal personalizada ni reemplaza la revisión de un profesional.`;
+
+  return baseIntro + topicLine + depthLine + channelLine + pasos + cierre;
+}
+
+function initConsultPage() {
+  if (!isConsultPage() || !isLoggedIn()) return;
+
+  const form = document.getElementById('consult-form');
+  const topicSelect = document.getElementById('consult-topic');
+  const questionInput = document.getElementById('consult-question');
+  const depthSelect = document.getElementById('consult-depth');
+  const channelSelect = document.getElementById('consult-channel');
+  const statusEl = document.getElementById('consult-status');
+  const outputEl = document.getElementById('consult-output');
+
+  if (!form || !questionInput || !outputEl || !statusEl) return;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const question = questionInput.value.trim();
+    if (!question) {
+      statusEl.textContent = 'Por favor describe tu situación laboral antes de enviar.';
+      return;
+    }
+
+    statusEl.textContent = 'Procesando tu consulta (demo)…';
+    outputEl.innerHTML = '';
+
+    const payload = {
+      topic: topicSelect?.value || '',
+      question,
+      depth: depthSelect?.value || '',
+      channel: channelSelect?.value || ''
+    };
+
+    // Simulación de “llamada a la IA”
+    const answer = await fakeLeyapsAnswer(payload);
+
+    const pre = document.createElement('pre');
+    pre.className = 'answer answer--demo';
+    pre.textContent = answer;
+
+    outputEl.innerHTML = '';
+    outputEl.appendChild(pre);
+    statusEl.textContent = 'Consulta procesada en modo demostración.';
+
+    // Guardar última consulta en localStorage para mostrar historial en el futuro
+    try {
+      const raw = localStorage.getItem('leyaps_last_consult');
+      const prev = raw ? JSON.parse(raw) : [];
+      prev.unshift({
+        at: new Date().toISOString(),
+        ...payload
+      });
+      localStorage.setItem('leyaps_last_consult', JSON.stringify(prev.slice(0, 10)));
+    } catch (_) {
+      // si falla, no rompemos nada
+    }
+  });
 }
 
 /* =======================
@@ -539,11 +628,14 @@ async function boot() {
   // 2) Luego actualizamos la UI según si hay sesión o no
   updateAuthUI();
 
-  // 3) Enforzamos rutas protegidas
+  // 3) Enforzamos rutas protegidas (privado + consulta)
   enforceAuthGuard();
 
-  // 4) Hidratamos contenido privado (perfil + sesión)
+  // 4) Hidratamos zona privada (si aplica)
   hydratePrivatePage();
+
+  // 5) Inicializamos página de consultas (si aplica)
+  initConsultPage();
 }
 
 boot();
