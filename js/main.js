@@ -124,7 +124,7 @@ const COGNITO = {
 const baseHost = () =>
   `https://${COGNITO.domain}.auth.${COGNITO.region}.amazoncognito.com`;
 
-// Fijamos explícitamente el origin a Netlify (coincide con Cognito)
+// Origin fijo a Netlify
 const redirectUri = () => 'https://leyaps.netlify.app/';
 const logoutRedirectUri = () => 'https://leyaps.netlify.app/';
 
@@ -319,13 +319,189 @@ function enforceAuthGuard() {
   }
 }
 
-// Rellenar datos adicionales en la zona privada
+/* =======================
+   Perfil de usuario (localStorage demo)
+   ======================= */
+
+const PROFILE_KEY = 'leyaps_profile';
+
+function loadProfileFromStorage() {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (_) {
+    return {};
+  }
+}
+
+function saveProfileToStorage(profile) {
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  } catch (err) {
+    console.warn('No se pudo guardar el perfil en localStorage:', err);
+  }
+}
+
+function fillProfileForm(tokenPayload, stored) {
+  const get = (id) => document.getElementById(id);
+
+  const nameInput = get('profile-name');
+  const lastnameInput = get('profile-lastname');
+  const phoneInput = get('profile-phone');
+  const countryInput = get('profile-country');
+  const regionInput = get('profile-region');
+  const languageSelect = get('profile-language');
+  const userTypeSelect = get('profile-user-type');
+  const roleInput = get('profile-role');
+  const industryInput = get('profile-industry');
+  const companySizeSelect = get('profile-company-size');
+  const depthSelect = get('profile-depth');
+  const responseSelect = get('profile-response-style');
+
+  if (nameInput) {
+    nameInput.value = stored.name || tokenPayload.given_name || '';
+  }
+  if (lastnameInput) {
+    lastnameInput.value = stored.lastname || tokenPayload.family_name || '';
+  }
+  if (phoneInput) {
+    phoneInput.value = stored.phone || tokenPayload.phone_number || '';
+  }
+  if (countryInput) {
+    countryInput.value = stored.country || '';
+  }
+  if (regionInput) {
+    regionInput.value = stored.region || '';
+  }
+  if (languageSelect) {
+    languageSelect.value = stored.language || tokenPayload.locale || '';
+  }
+  if (userTypeSelect) {
+    userTypeSelect.value = stored.userType || '';
+  }
+  if (roleInput) {
+    roleInput.value = stored.role || '';
+  }
+  if (industryInput) {
+    industryInput.value = stored.industry || '';
+  }
+  if (companySizeSelect) {
+    companySizeSelect.value = stored.companySize || '';
+  }
+  if (depthSelect) {
+    depthSelect.value = stored.depth || '';
+  }
+  if (responseSelect) {
+    responseSelect.value = stored.responseStyle || '';
+  }
+
+  // Temas prioritarios (checkboxes)
+  const topics = stored.topics || [];
+  const topicInputs = document.querySelectorAll('input[name="profile-topics"]');
+  topicInputs.forEach((input) => {
+    input.checked = topics.includes(input.value);
+  });
+}
+
+function getProfileFormData(tokenPayload) {
+  const get = (id) => document.getElementById(id);
+
+  const topicInputs = document.querySelectorAll('input[name="profile-topics"]');
+  const topics = Array.from(topicInputs)
+    .filter((i) => i.checked)
+    .map((i) => i.value);
+
+  const existing = loadProfileFromStorage();
+
+  return {
+    // Identidad / contacto
+    name: get('profile-name')?.value?.trim() || '',
+    lastname: get('profile-lastname')?.value?.trim() || '',
+    phone: get('profile-phone')?.value?.trim() || '',
+    country: get('profile-country')?.value?.trim() || '',
+    region: get('profile-region')?.value?.trim() || '',
+    language: get('profile-language')?.value || '',
+    // Laboral
+    userType: get('profile-user-type')?.value || '',
+    role: get('profile-role')?.value?.trim() || '',
+    industry: get('profile-industry')?.value?.trim() || '',
+    companySize: get('profile-company-size')?.value || '',
+    // Preferencias
+    depth: get('profile-depth')?.value || '',
+    responseStyle: get('profile-response-style')?.value || '',
+    topics,
+    // Datos técnicos (se conservan si ya existían)
+    createdAt: existing.createdAt || new Date().toISOString(),
+    userId: tokenPayload.sub || existing.userId || '',
+    email: tokenPayload.email || existing.email || '',
+    loginMethod: existing.loginMethod || 'Cognito (email y contraseña)'
+  };
+}
+
+// Rellenar zona privada con datos del token + perfil
 function hydratePrivatePage() {
   if (!isProtectedRoute() || !isLoggedIn()) return;
-  const p = parseJwt(getIdToken()) || {};
-  const el = document.getElementById('private-username');
-  if (el) {
-    el.textContent = p.email ? p.email.split('@')[0] : 'usuario';
+
+  const token = getIdToken();
+  const payload = parseJwt(token) || {};
+
+  // Cabecera de sesión
+  const usernameEl = document.getElementById('private-username');
+  if (usernameEl) {
+    usernameEl.textContent = payload.email
+      ? payload.email.split('@')[0]
+      : 'usuario';
+  }
+
+  const emailEl = document.getElementById('profile-email');
+  if (emailEl && payload.email) {
+    emailEl.textContent = payload.email;
+  }
+
+  const idEl = document.getElementById('profile-user-id');
+  if (idEl && payload.sub) {
+    idEl.textContent = payload.sub;
+  }
+
+  const methodEl = document.getElementById('profile-login-method');
+  if (methodEl) {
+    methodEl.textContent = 'Cognito (email y contraseña)';
+  }
+
+  // Perfil guardado en localStorage
+  let stored = loadProfileFromStorage();
+
+  if (!stored.createdAt) {
+    stored.createdAt = new Date().toISOString();
+  }
+  stored.userId = stored.userId || payload.sub || '';
+  stored.email = stored.email || payload.email || '';
+  stored.loginMethod = stored.loginMethod || 'Cognito (email y contraseña)';
+  saveProfileToStorage(stored);
+
+  const createdEl = document.getElementById('profile-created-at');
+  if (createdEl && stored.createdAt) {
+    try {
+      createdEl.textContent = new Date(stored.createdAt)
+        .toLocaleString('es-CL');
+    } catch (_) {
+      createdEl.textContent = stored.createdAt;
+    }
+  }
+
+  // Rellenamos el formulario
+  fillProfileForm(payload, stored);
+
+  // Listener de guardado (evitamos duplicar)
+  const form = document.getElementById('profile-form');
+  if (form && !form.dataset.bound) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const updated = getProfileFormData(payload);
+      saveProfileToStorage(updated);
+      alert('Perfil guardado correctamente.');
+    });
+    form.dataset.bound = 'true';
   }
 }
 
@@ -366,7 +542,7 @@ async function boot() {
   // 3) Enforzamos rutas protegidas
   enforceAuthGuard();
 
-  // 4) Hidratamos contenido privado (si aplica)
+  // 4) Hidratamos contenido privado (perfil + sesión)
   hydratePrivatePage();
 }
 
