@@ -5,45 +5,184 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Zona privada — Leyaps</title>
 
-  <!-- Mismo CSS que index.html -->
+  <!-- Mismo CSS global que el resto del sitio -->
   <link rel="stylesheet" href="styles/main.css"/>
 </head>
 
 <body data-page="privado">
-  <!-- Accesibilidad -->
   <a class="sr-only" href="#contenido">Saltar al contenido</a>
 
   <!-- Header dinámico -->
   <div id="app-header"></div>
 
-  <!-- Contenido -->
   <main id="contenido" class="container">
-
     <section class="hero hero--center">
       <h1 class="hero__title">Zona privada</h1>
       <p class="hero__subtitle">
-        Bienvenido a tu área personal. Próximamente podrás ver tu panel,
+        Bienvenido a tu área personal. Aquí podrás ver tu panel,
         historial de consultas, documentos guardados y configuración de tu cuenta.
       </p>
     </section>
 
+    <!-- FICHA DE SESIÓN -->
     <section class="card mt-32">
       <h2>Tu sesión</h2>
       <p>
         Has iniciado sesión como
         <strong id="private-username">usuario</strong>.
       </p>
-      <p class="mt-16">
-        Esta página sólo es accesible para usuarios autenticados mediante Amazon Cognito.
-      </p>
+
+      <div class="mt-16">
+        <p><strong>Correo:</strong> <span id="profile-email">—</span></p>
+        <p><strong>ID de usuario:</strong> <span id="profile-user-id">—</span></p>
+        <p><strong>Método de acceso:</strong> <span id="profile-login-method">Cognito (email y contraseña)</span></p>
+        <p><strong>Cuenta creada:</strong> <span id="profile-created-at">—</span></p>
+      </div>
     </section>
 
+    <!-- FORMULARIO DE PERFIL -->
+    <section class="card mt-32">
+      <h2>Perfil de usuario</h2>
+      <p class="mt-8">
+        Estos datos ayudan a que Leyaps adapte las respuestas a tu realidad laboral.
+        Son sólo para mejorar el servicio, no se comparten con terceros.
+      </p>
+
+      <form id="profile-form" class="mt-24">
+        <!-- Identidad básica -->
+        <div class="grid grid--2">
+          <div class="field">
+            <label for="profile-name">Nombre</label>
+            <input id="profile-name" type="text" placeholder="Ej: Andrés"/>
+          </div>
+          <div class="field">
+            <label for="profile-lastname">Apellidos</label>
+            <input id="profile-lastname" type="text" placeholder="Ej: Pino Salazar"/>
+          </div>
+        </div>
+
+        <div class="grid grid--2 mt-16">
+          <div class="field">
+            <label for="profile-phone">Teléfono móvil</label>
+            <input id="profile-phone" type="tel" placeholder="+56 9 1234 5678"/>
+          </div>
+          <div class="field">
+            <label for="profile-country">País</label>
+            <input id="profile-country" type="text" placeholder="Ej: Chile"/>
+          </div>
+        </div>
+
+        <div class="grid grid--2 mt-16">
+          <div class="field">
+            <label for="profile-region">Región / Ciudad</label>
+            <input id="profile-region" type="text" placeholder="Ej: RM, Lo Prado"/>
+          </div>
+          <div class="field">
+            <label for="profile-language">Idioma preferido</label>
+            <select id="profile-language">
+              <option value="">Selecciona…</option>
+              <option value="es-CL">Español Chile</option>
+              <option value="es-419">Español Latinoamérica</option>
+              <option value="es-ES">Español España</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Perfil laboral -->
+        <h3 class="mt-32">Perfil laboral</h3>
+
+        <div class="grid grid--2 mt-16">
+          <div class="field">
+            <label for="profile-user-type">Tipo de usuario</label>
+            <select id="profile-user-type">
+              <option value="">Selecciona…</option>
+              <option value="trabajador">Trabajador / Colaborador</option>
+              <option value="empresa">Empresa / Pyme</option>
+              <option value="abogado">Abogado / Estudio jurídico</option>
+              <option value="rrhh">RRHH / Compensaciones</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="profile-role">Cargo actual</label>
+            <input id="profile-role" type="text" placeholder="Ej: Jefe de RRHH, Abogado laboral, Administrativo"/>
+          </div>
+        </div>
+
+        <div class="grid grid--2 mt-16">
+          <div class="field">
+            <label for="profile-industry">Rubro / Industria</label>
+            <input id="profile-industry" type="text" placeholder="Ej: Retail, Comercio automotriz, Servicios profesionales"/>
+          </div>
+          <div class="field">
+            <label for="profile-company-size">Tamaño de la empresa</label>
+            <select id="profile-company-size">
+              <option value="">Selecciona…</option>
+              <option value="1-9">1–9 personas</option>
+              <option value="10-49">10–49 personas</option>
+              <option value="50-199">50–199 personas</option>
+              <option value="200-999">200–999 personas</option>
+              <option value="1000+">1000+ personas</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Preferencias de respuesta -->
+        <h3 class="mt-32">Preferencias de respuesta</h3>
+
+        <div class="grid grid--2 mt-16">
+          <div class="field">
+            <label for="profile-depth">Nivel de profundidad</label>
+            <select id="profile-depth">
+              <option value="">Selecciona…</option>
+              <option value="simple">Súper simple (explicado como para no abogados)</option>
+              <option value="intermedio">Intermedio (detalles clave + ejemplos)</option>
+              <option value="tecnico">Técnico / Jurídico (citando artículos y dictámenes)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="profile-response-style">Estilo de respuesta</label>
+            <select id="profile-response-style">
+              <option value="">Selecciona…</option>
+              <option value="checklist">Paso a paso con checklist</option>
+              <option value="resumen">Resumen + referencias legales</option>
+              <option value="explicacion">Explicación larga con ejemplos</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field mt-16">
+          <label>Temas prioritarios</label>
+          <div class="chips">
+            <label class="chip chip--selectable">
+              <input type="checkbox" name="profile-topics" value="finiquito"/> Finiquito
+            </label>
+            <label class="chip chip--selectable">
+              <input type="checkbox" name="profile-topics" value="despido"/> Despido / término de contrato
+            </label>
+            <label class="chip chip--selectable">
+              <input type="checkbox" name="profile-topics" value="sala-cuna"/> Sala cuna
+            </label>
+            <label class="chip chip--selectable">
+              <input type="checkbox" name="profile-topics" value="licencias"/> Licencias médicas
+            </label>
+            <label class="chip chip--selectable">
+              <input type="checkbox" name="profile-topics" value="teletrabajo"/> Teletrabajo
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn--primary mt-32">
+          Guardar perfil
+        </button>
+      </form>
+    </section>
   </main>
 
   <!-- Footer dinámico -->
   <div id="app-footer"></div>
 
-  <!-- Script principal -->
   <script type="module" src="js/main.js"></script>
 </body>
 </html>
+
