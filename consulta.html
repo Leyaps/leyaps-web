@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="contrast">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Consulta a la IA — Leyaps</title>
+
+  <link rel="stylesheet" href="styles/main.css"/>
+</head>
+
+<body data-page="consulta">
+  <a class="sr-only" href="#contenido">Saltar al contenido</a>
+
+  <div id="app-header"></div>
+
+  <main id="contenido" class="container">
+    <section class="hero hero--center">
+      <h1 class="hero__title">Haz tu consulta laboral</h1>
+      <p class="hero__subtitle">
+        Describe tu situación laboral en detalle. Leyaps IA te entregará una explicación
+        en simple, basada en la normativa laboral chilena y dictámenes de la Dirección del Trabajo.
+      </p>
+    </section>
+
+    <section class="card mt-32">
+      <h2>Formulario de consulta</h2>
+      <p class="mt-8">
+        Mientras no tengamos el backend conectado, esta sección funciona en modo
+        demostración: simula cómo se verá la respuesta de la IA para tu MVP.
+      </p>
+
+      <form id="consult-form" class="mt-24">
+        <div class="field">
+          <label for="consult-topic">Tema principal</label>
+          <select id="consult-topic">
+            <option value="">Selecciona…</option>
+            <option value="despido">Despido / término de contrato</option>
+            <option value="finiquito">Finiquito</option>
+            <option value="sala-cuna">Sala cuna</option>
+            <option value="licencias">Licencias médicas</option>
+            <option value="jornada">Jornada, horas extras y descansos</option>
+            <option value="teletrabajo">Teletrabajo</option>
+            <option value="acoso">Acoso laboral / Ley Karin</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+
+        <div class="field mt-16">
+          <label for="consult-question">
+            Describe tu caso (qué pasó, fechas, tipo de contrato, etc.)
+          </label>
+          <textarea
+            id="consult-question"
+            rows="6"
+            placeholder="Ej: Me despidieron por necesidades de la empresa el 10 de noviembre, llevaba 3 años trabajando con contrato indefinido, me ofrecieron un finiquito que no sé si está bien calculado…"
+          ></textarea>
+        </div>
+
+        <div class="grid grid--2 mt-16">
+          <div class="field">
+            <label for="consult-depth">Nivel de detalle</label>
+            <select id="consult-depth">
+              <option value="">Selecciona…</option>
+              <option value="simple">Simple (puntos clave)</option>
+              <option value="intermedio">Intermedio (pasos + artículos)</option>
+              <option value="tecnico">Técnico (más referencias legales)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="consult-channel">Qué necesitas lograr</label>
+            <select id="consult-channel">
+              <option value="">Selecciona…</option>
+              <option value="entender">Entender mis derechos</option>
+              <option value="negociar">Negociar con la empresa</option>
+              <option value="demanda">Analizar opción de demanda</option>
+              <option value="documento">Redactar carta o documento</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn--primary mt-24">
+          Enviar consulta
+        </button>
+
+        <p id="consult-status" class="mt-16 text-sm"></p>
+      </form>
+    </section>
+
+    <section class="card mt-32">
+      <h2>Respuesta de Leyaps IA</h2>
+      <div id="consult-output" class="mt-16">
+        <p class="text-muted">
+          Aquí verás la respuesta generada por la IA, con pasos claros y referencias
+          legales. Por ahora, esta respuesta es simulada para tu MVP de demo.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <div id="app-footer"></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
