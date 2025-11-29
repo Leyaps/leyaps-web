@@ -117,7 +117,6 @@ const COGNITO = {
   region: 'sa-east-1',
   userPoolId: 'sa-east-1_Cb7yCQ0Oi',
   clientId: 'ea755st9nj7b158fcsecrhflg',
-  // Dominio correcto según Cognito
   domain: 'sa-east-1cb7ycqooi'
 };
 
@@ -180,7 +179,7 @@ async function login() {
   url.search = new URLSearchParams({
     client_id: COGNITO.clientId,
     response_type: 'code',
-    scope: 'openid email phone', // principle of least privilege
+    scope: 'openid email phone',
     redirect_uri: redirectUri(),
     code_challenge_method: 'S256',
     code_challenge: challenge
@@ -267,7 +266,6 @@ async function handleOAuthCallback() {
     const data = await res.json();
 
     if (data.id_token && data.access_token) {
-      // tokens sólo en sessionStorage (más seguro)
       sessionStorage.setItem('leyaps_id_token', data.id_token);
       sessionStorage.setItem('leyaps_access_token', data.access_token);
       if (data.refresh_token) {
@@ -279,7 +277,6 @@ async function handleOAuthCallback() {
   } catch (err) {
     console.error('Error en intercambio de authorization code:', err);
   } finally {
-    // Siempre limpiamos el code de la URL
     removeCodeFromUrl();
   }
 }
@@ -306,7 +303,7 @@ function logout() {
    Rutas protegidas
    ======================= */
 
-const PROTECTED_PATHS = ['/privado.html', '/consulta.html'];
+const PROTECTED_PATHS = ['/privado.html', '/consulta.html', '/historial.html'];
 
 function isProtectedRoute() {
   return PROTECTED_PATHS.includes(location.pathname);
@@ -323,6 +320,7 @@ function enforceAuthGuard() {
    ======================= */
 
 const PROFILE_KEY = 'leyaps_profile';
+const CONSULT_HISTORY_KEY = 'leyaps_last_consult';
 
 function loadProfileFromStorage() {
   try {
@@ -504,7 +502,6 @@ function isConsultPage() {
 }
 
 async function fakeLeyapsAnswer(payload) {
-  // Simulador simple de respuesta IA para el MVP
   const { topic, question, depth, channel } = payload;
 
   const baseIntro = `Esta es una respuesta simulada de Leyaps IA en base a tu consulta laboral.`;
@@ -568,7 +565,6 @@ function initConsultPage() {
       channel: channelSelect?.value || ''
     };
 
-    // Simulación de “llamada a la IA”
     const answer = await fakeLeyapsAnswer(payload);
 
     const pre = document.createElement('pre');
@@ -579,19 +575,123 @@ function initConsultPage() {
     outputEl.appendChild(pre);
     statusEl.textContent = 'Consulta procesada en modo demostración.';
 
-    // Guardar última consulta en localStorage para mostrar historial en el futuro
     try {
-      const raw = localStorage.getItem('leyaps_last_consult');
+      const raw = localStorage.getItem(CONSULT_HISTORY_KEY);
       const prev = raw ? JSON.parse(raw) : [];
       prev.unshift({
         at: new Date().toISOString(),
         ...payload
       });
-      localStorage.setItem('leyaps_last_consult', JSON.stringify(prev.slice(0, 10)));
+      localStorage.setItem(CONSULT_HISTORY_KEY, JSON.stringify(prev.slice(0, 50)));
     } catch (_) {
       // si falla, no rompemos nada
     }
   });
+}
+
+/* =======================
+   Página de historial
+   ======================= */
+
+function isHistoryPage() {
+  return location.pathname === '/historial.html';
+}
+
+function loadConsultHistoryFromStorage() {
+  try {
+    const raw = localStorage.getItem(CONSULT_HISTORY_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function initHistoryPage() {
+  if (!isHistoryPage() || !isLoggedIn()) return;
+
+  const searchInput = document.getElementById('history-search');
+  const listEl = document.getElementById('history-list');
+  const emptyEl = document.getElementById('history-empty');
+  const detailEl = document.getElementById('history-detail');
+
+  if (!listEl || !detailEl) return;
+
+  let history = loadConsultHistoryFromStorage();
+
+  function showDetail(item) {
+    const date = item.at ? new Date(item.at) : null;
+    const dateStr = date ? date.toLocaleString('es-CL') : '';
+
+    detailEl.innerHTML = `
+      <h3>Consulta</h3>
+      <p><strong>Fecha:</strong> ${dateStr || '-'}</p>
+      <p><strong>Tema:</strong> ${item.topic || '-'}</p>
+      <p><strong>Objetivo:</strong> ${item.channel || '-'}</p>
+      <p><strong>Nivel de detalle:</strong> ${item.depth || '-'}</p>
+      <h4 class="mt-16">Descripción del caso</h4>
+      <p>${(item.question || '').replace(/\n/g, '<br>')}</p>
+    `;
+  }
+
+  function render(filterText = '') {
+    const term = filterText.trim().toLowerCase();
+    const filtered = term
+      ? history.filter((h) => {
+          const haystack = [
+            h.topic || '',
+            h.question || '',
+            h.channel || ''
+          ].join(' ').toLowerCase();
+          return haystack.includes(term);
+        })
+      : history;
+
+    listEl.innerHTML = '';
+
+    if (!filtered.length) {
+      if (emptyEl) emptyEl.style.display = 'block';
+      return;
+    }
+    if (emptyEl) emptyEl.style.display = 'none';
+
+    filtered.forEach((item, idx) => {
+      const date = item.at ? new Date(item.at) : null;
+      const dateStr = date ? date.toLocaleString('es-CL') : '';
+      const preview = (item.question || '');
+      const shortPreview =
+        preview.length > 120 ? preview.slice(0, 120) + '…' : preview;
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'history-item tap';
+      btn.innerHTML = `
+        <div class="history-item__meta">
+          <span class="history-item__topic">${item.topic || 'Sin tema'}</span>
+          <span class="history-item__date">${dateStr}</span>
+        </div>
+        <div class="history-item__preview">
+          ${shortPreview || 'Sin descripción registrada.'}
+        </div>
+      `;
+      btn.addEventListener('click', () => showDetail(item));
+      listEl.appendChild(btn);
+
+      if (idx === 0 && !detailEl.dataset.initialized) {
+        showDetail(item);
+      }
+    });
+
+    detailEl.dataset.initialized = 'true';
+  }
+
+  render();
+
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      render(searchInput.value || '');
+    });
+  }
 }
 
 /* =======================
@@ -622,20 +722,12 @@ async function boot() {
     });
   });
 
-  // 1) Si viene ?code= de Cognito, lo cambiamos por tokens
   await handleOAuthCallback();
-
-  // 2) Luego actualizamos la UI según si hay sesión o no
   updateAuthUI();
-
-  // 3) Enforzamos rutas protegidas (privado + consulta)
   enforceAuthGuard();
-
-  // 4) Hidratamos zona privada (si aplica)
   hydratePrivatePage();
-
-  // 5) Inicializamos página de consultas (si aplica)
   initConsultPage();
+  initHistoryPage();
 }
 
 boot();
