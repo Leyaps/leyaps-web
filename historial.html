@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="contrast">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Historial de consultas — Leyaps</title>
+
+  <link rel="stylesheet" href="styles/main.css"/>
+</head>
+
+<body data-page="historial">
+  <a class="sr-only" href="#contenido">Saltar al contenido</a>
+
+  <div id="app-header"></div>
+
+  <main id="contenido" class="container">
+    <section class="hero hero--center">
+      <h1 class="hero__title">Historial de consultas</h1>
+      <p class="hero__subtitle">
+        Revisa las consultas laborales que has enviado a Leyaps IA. Puedes buscar por tema
+        o por palabras clave de tu caso.
+      </p>
+    </section>
+
+    <!-- BUSCADOR + LISTA -->
+    <section class="card mt-32">
+      <h2>Tus consultas recientes</h2>
+      <p class="mt-8">
+        El historial se guarda localmente en este dispositivo mientras no conectemos el backend.
+        Más adelante se sincronizará con tu cuenta en la nube.
+      </p>
+
+      <div class="field mt-16">
+        <label for="history-search">Buscar en tus consultas</label>
+        <input
+          id="history-search"
+          type="search"
+          placeholder="Ej: finiquito, despido, sala cuna…"
+        />
+      </div>
+
+      <div id="history-empty" class="mt-16 text-muted">
+        Aún no tienes consultas registradas. Cuando envíes consultas desde
+        <strong>Consultas IA</strong>, aparecerán aquí.
+      </div>
+
+      <div id="history-list" class="mt-16">
+        <!-- Se rellena desde main.js -->
+      </div>
+    </section>
+
+    <!-- DETALLE -->
+    <section class="card mt-32">
+      <h2>Detalle de la consulta</h2>
+      <div id="history-detail" class="mt-16">
+        <p class="text-muted">
+          Selecciona una consulta del listado para ver el detalle completo:
+          fecha, tema, objetivo y descripción del caso.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <div id="app-footer"></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
