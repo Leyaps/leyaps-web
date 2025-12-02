@@ -112,7 +112,6 @@ function initHeader() {
    Auth con Cognito (PKCE)
    ======================= */
 
-// Config según tu consola de Cognito
 const COGNITO = {
   region: 'sa-east-1',
   userPoolId: 'sa-east-1_Cb7yCQ0Oi',
@@ -479,8 +478,52 @@ function hydratePrivatePage() {
     }
   }
 
+  // Rellena el formulario
   fillProfileForm(payload, stored);
 
+  // ---------- Resumen rápido ----------
+  const fullName = `${stored.name || ''} ${stored.lastname || ''}`.trim();
+  const summaryNameEl = document.getElementById('profile-summary-name');
+  const summaryTypeEl = document.getElementById('profile-summary-type');
+  const summaryTopicsEl = document.getElementById('profile-summary-topics');
+  const summaryDepthEl = document.getElementById('profile-summary-depth');
+
+  if (summaryNameEl) {
+    summaryNameEl.textContent =
+      fullName ||
+      (payload.email ? payload.email.split('@')[0] : 'Tu sesión');
+  }
+
+  if (summaryTypeEl) {
+    const typeMap = {
+      trabajador: 'Trabajador / Colaborador',
+      empresa: 'Empresa / Pyme',
+      abogado: 'Abogado / Estudio jurídico',
+      rrhh: 'RRHH / Compensaciones',
+      otro: 'Otro perfil'
+    };
+    summaryTypeEl.textContent =
+      typeMap[stored.userType] || 'Tipo de usuario no definido';
+  }
+
+  if (summaryTopicsEl) {
+    const topics = stored.topics || [];
+    summaryTopicsEl.textContent = topics.length
+      ? topics.join(', ')
+      : 'Aún no configurados.';
+  }
+
+  if (summaryDepthEl) {
+    const depthMap = {
+      simple: 'Explicaciones súper simples.',
+      intermedio: 'Detalle intermedio con ejemplos.',
+      tecnico: 'Respuestas con enfoque jurídico y referencias.'
+    };
+    summaryDepthEl.textContent =
+      depthMap[stored.depth] || 'Usando configuración por defecto.';
+  }
+
+  // Guardar perfil desde el formulario
   const form = document.getElementById('profile-form');
   if (form && !form.dataset.bound) {
     form.addEventListener('submit', (e) => {
@@ -488,6 +531,8 @@ function hydratePrivatePage() {
       const updated = getProfileFormData(payload);
       saveProfileToStorage(updated);
       alert('Perfil guardado correctamente.');
+      // refrescar resumen
+      hydratePrivatePage();
     });
     form.dataset.bound = 'true';
   }
@@ -533,26 +578,6 @@ En la versión conectada a la IA, aquí verás:
   return baseIntro + topicLine + depthLine + channelLine + pasos + cierre;
 }
 
-// ===== Historial: lectura robusta (acepta formato viejo objeto o array) =====
-function loadConsultHistoryFromStorage() {
-  try {
-    const raw = localStorage.getItem(CONSULT_HISTORY_KEY);
-    if (!raw) return [];
-
-    const parsed = JSON.parse(raw);
-
-    // Si ya es arreglo, lo usamos tal cual
-    if (Array.isArray(parsed)) return parsed;
-
-    // Si es un objeto de la versión antigua, lo envolvemos en un array
-    if (parsed && typeof parsed === 'object') return [parsed];
-
-    return [];
-  } catch (_) {
-    return [];
-  }
-}
-
 function initConsultPage() {
   if (!isConsultPage() || !isLoggedIn()) return;
 
@@ -595,17 +620,14 @@ function initConsultPage() {
     outputEl.appendChild(pre);
     statusEl.textContent = 'Consulta procesada en modo demostración.';
 
-    // Guardado robusto del historial (si había formato viejo, se normaliza)
     try {
-      const prev = loadConsultHistoryFromStorage();
+      const raw = localStorage.getItem(CONSULT_HISTORY_KEY);
+      const prev = raw ? JSON.parse(raw) : [];
       prev.unshift({
         at: new Date().toISOString(),
         ...payload
       });
-      localStorage.setItem(
-        CONSULT_HISTORY_KEY,
-        JSON.stringify(prev.slice(0, 50))
-      );
+      localStorage.setItem(CONSULT_HISTORY_KEY, JSON.stringify(prev.slice(0, 50)));
     } catch (_) {
       // si falla, no rompemos nada
     }
@@ -618,6 +640,16 @@ function initConsultPage() {
 
 function isHistoryPage() {
   return location.pathname === '/historial.html';
+}
+
+function loadConsultHistoryFromStorage() {
+  try {
+    const raw = localStorage.getItem(CONSULT_HISTORY_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (_) {
+    return [];
+  }
 }
 
 function initHistoryPage() {
