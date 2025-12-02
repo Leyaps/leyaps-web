@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Zona privada — Leyaps</title>
 
-  <!-- Mismo CSS global que el resto del sitio -->
+  <!-- CSS global del sitio -->
   <link rel="stylesheet" href="styles/main.css"/>
 </head>
 
@@ -19,9 +19,31 @@
     <section class="hero hero--center">
       <h1 class="hero__title">Zona privada</h1>
       <p class="hero__subtitle">
-        Bienvenido a tu área personal. Próximamente podrás ver tu panel,
-        historial de consultas, documentos guardados y configuración de tu cuenta.
+        Bienvenido a tu área personal. Aquí podrás gestionar tu perfil,
+        revisar tu historial de consultas y acceder a funciones avanzadas de Leyaps IA.
       </p>
+    </section>
+
+    <!-- RESUMEN RÁPIDO -->
+    <section class="card mt-24 card--summary">
+      <h2>Resumen de tu cuenta</h2>
+      <p class="mt-8">
+        <strong id="profile-summary-name">Tu sesión</strong>
+        · <span id="profile-summary-type">Tipo de usuario no definido</span>
+      </p>
+      <p class="mt-4">
+        <strong>Temas prioritarios:</strong>
+        <span id="profile-summary-topics">Aún no configurados.</span>
+      </p>
+      <p class="mt-4">
+        <strong>Estilo de respuesta:</strong>
+        <span id="profile-summary-depth">Usando configuración por defecto.</span>
+      </p>
+
+      <div class="summary__actions mt-16">
+        <a class="btn btn--primary" href="consulta.html">Nueva consulta a la IA</a>
+        <a class="btn btn--ghost" href="historial.html">Ver historial de consultas</a>
+      </div>
     </section>
 
     <!-- FICHA DE SESIÓN -->
@@ -37,20 +59,6 @@
         <p><strong>ID de usuario:</strong> <span id="profile-user-id">—</span></p>
         <p><strong>Método de acceso:</strong> <span id="profile-login-method">Cognito (email y contraseña)</span></p>
         <p><strong>Cuenta creada:</strong> <span id="profile-created-at">—</span></p>
-      </div>
-
-      <!-- CTA: ir directo a la pantalla de consultas -->
-      <div class="mt-24">
-        <a class="btn btn--primary" href="consulta.html">
-          Hacer una nueva consulta a la IA
-        </a>
-      </div>
-
-      <!-- Link al historial de consultas -->
-      <div class="mt-8">
-        <a class="btn" href="historial.html">
-          Ver historial de consultas
-        </a>
       </div>
     </section>
 
