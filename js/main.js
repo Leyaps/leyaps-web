@@ -533,6 +533,26 @@ En la versión conectada a la IA, aquí verás:
   return baseIntro + topicLine + depthLine + channelLine + pasos + cierre;
 }
 
+// ===== Historial: lectura robusta (acepta formato viejo objeto o array) =====
+function loadConsultHistoryFromStorage() {
+  try {
+    const raw = localStorage.getItem(CONSULT_HISTORY_KEY);
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw);
+
+    // Si ya es arreglo, lo usamos tal cual
+    if (Array.isArray(parsed)) return parsed;
+
+    // Si es un objeto de la versión antigua, lo envolvemos en un array
+    if (parsed && typeof parsed === 'object') return [parsed];
+
+    return [];
+  } catch (_) {
+    return [];
+  }
+}
+
 function initConsultPage() {
   if (!isConsultPage() || !isLoggedIn()) return;
 
@@ -575,14 +595,17 @@ function initConsultPage() {
     outputEl.appendChild(pre);
     statusEl.textContent = 'Consulta procesada en modo demostración.';
 
+    // Guardado robusto del historial (si había formato viejo, se normaliza)
     try {
-      const raw = localStorage.getItem(CONSULT_HISTORY_KEY);
-      const prev = raw ? JSON.parse(raw) : [];
+      const prev = loadConsultHistoryFromStorage();
       prev.unshift({
         at: new Date().toISOString(),
         ...payload
       });
-      localStorage.setItem(CONSULT_HISTORY_KEY, JSON.stringify(prev.slice(0, 50)));
+      localStorage.setItem(
+        CONSULT_HISTORY_KEY,
+        JSON.stringify(prev.slice(0, 50))
+      );
     } catch (_) {
       // si falla, no rompemos nada
     }
@@ -595,16 +618,6 @@ function initConsultPage() {
 
 function isHistoryPage() {
   return location.pathname === '/historial.html';
-}
-
-function loadConsultHistoryFromStorage() {
-  try {
-    const raw = localStorage.getItem(CONSULT_HISTORY_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (_) {
-    return [];
-  }
 }
 
 function initHistoryPage() {
